@@ -21,10 +21,15 @@
         args:
           - "--network-config=/etc/flannel-network.json"
           - "--etcd-prefix=/{{ cluster_name }}/network"
-          - "--etcd-server={{ etcd_endpoint }}"
+          - "--etcd-endpoints={{ etcd_access_endpoint }}"
+          - "--etcd-keyfile={{ etcd_cert_dir }}/node-key.pem"
+          - "--etcd-certfile={{ etcd_cert_dir }}/node.pem"
+          - "--etcd-cafile={{ etcd_cert_dir }}/ca.pem"
         volumeMounts:
           - name: "networkconfig"
             mountPath: "/etc/flannel-network.json"
+          - name: "etcd-certs"
+            mountPath: "{{ etcd_cert_dir }}"
         imagePullPolicy: "Always"
       - name: "flannel-container"
         image: "{{ flannel_image_repo }}:{{ flannel_image_tag }}"
@@ -41,6 +46,8 @@
         volumeMounts:
           - name: "subnetenv"
             mountPath: "/run/flannel"
+          - name: "etcd-certs"
+            mountPath: "{{ etcd_cert_dir }}"
         securityContext:
           privileged: true
     hostNetwork: true

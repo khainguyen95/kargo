@@ -1,0 +1,23 @@
+---
+- name: Configure dhclient to prepend search/nameservers
+  blockinfile:
+    block: |-
+      {% for item in [ prepend_search, prepend_nameserver ] -%}
+      {{ item }}
+      {% endfor %}
+    dest: "{{dhclientconffile}}"
+    create: yes
+    state: present
+    insertbefore: BOF
+    backup: yes
+    follow: yes
+    marker: "# Ansible entries {mark}"
+  notify: Dnsmasq | restart network
+
+- name: Configue dhclient hooks for resolv.conf
+  template:
+    src: dhclient_dnsupdate.sh.j2
+    dest: "{{ dhclienthookfile }}"
+    owner: root
+    mode: 0755
+  notify: Dnsmasq | restart network

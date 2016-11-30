@@ -14,7 +14,7 @@
       networking
       {%- endif %}
     state: restarted
-  when: ansible_os_family != "RedHat" and ansible_os_family != "CoreOS"
+  when: ansible_os_family != "CoreOS"
 
 - name: Dnsmasq | update resolvconf
   command: /bin/true
@@ -32,6 +32,7 @@
 
 - name: Dnsmasq | reload resolvconf
   command: /sbin/resolvconf -u
+  when: resolvconf|bool
   ignore_errors: true
 
 - name: Dnsmasq | apply resolvconf cloud-init

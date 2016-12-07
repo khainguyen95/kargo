@@ -14,10 +14,20 @@
     marker: "# Ansible entries {mark}"
   notify: Dnsmasq | restart network
 
-- name: Configue dhclient hooks for resolv.conf
+- name: Configue dhclient hooks for resolv.conf (non-RH)
   template:
     src: dhclient_dnsupdate.sh.j2
     dest: "{{ dhclienthookfile }}"
     owner: root
     mode: 0755
   notify: Dnsmasq | restart network
+  when: ansible_os_family != "RedHat"
+
+- name: Configue dhclient hooks for resolv.conf (RH-only)
+  template:
+    src: dhclient_dnsupdate_rh.sh.j2
+    dest: "{{ dhclienthookfile }}"
+    owner: root
+    mode: 0755
+  notify: Dnsmasq | restart network
+  when: ansible_os_family == "RedHat"

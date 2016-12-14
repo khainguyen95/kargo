@@ -1,0 +1,2 @@
+# Override deployment status to ready to enable apps to be scheduled
+status: notReady

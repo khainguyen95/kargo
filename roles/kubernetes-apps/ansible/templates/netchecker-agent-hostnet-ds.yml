@@ -24,3 +24,5 @@ spec:
             - name: REPORT_INTERVAL
               value: '{{ agent_report_interval }}'
           imagePullPolicy: {{ k8s_image_pull_policy }}
+      nodeSelector:
+        deploymentStatus: ready

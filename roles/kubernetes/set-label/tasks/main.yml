@@ -1,0 +1,6 @@
+---
+- name: Set deploymentStatus to {{ status|default(not_ready) }}
+  command: kubectl label --overwrite node {{ ansible_hostname }}  deploymentStatus={{ status|default(not_ready) }}
+  delegate_to: "{{groups['kube-master'][0]}}"
+  when: inventory_hostname in groups['kube-node']
+

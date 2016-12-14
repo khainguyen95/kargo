@@ -46,6 +46,7 @@
   roles:
     - { role: dnsmasq, tags: dnsmasq }
     - { role: kubernetes/preinstall, tags: resolvconf }
+    - { role: kubernetes/set-label, tags: resolvconf, status: 'ready' }
 
 - hosts: kube-master[0]
   any_errors_fatal: true

@@ -11,7 +11,6 @@
 #   issue_cert_file_mode:   Mode of the placed cert file
 #   issue_cert_file_owner:  Owner of the placed cert file and directory
 #   issue_cert_format:      Format for returned data. Can be pem, der, or pem_bundle
-#   issue_cert_hosts:       List of hosts to distribute the cert to
 #   issue_cert_ip_sans:     Requested IP Subject Alternative Names, in a list
 #   issue_cert_mount_path:  Mount point in Vault to make the request to
 #   issue_cert_path:        Full path to the cert, include its name
@@ -29,13 +28,13 @@
 - name: "issue_cert | Read in the local credentials"
   command: cat {{ vault_roles_dir }}/{{ issue_cert_role }}/userpass
   register: vault_creds_cat
-  delegate_to: "{{ issue_cert_hosts|first }}"
+  delegate_to: "{{ groups.vault|first }}"
   run_once: true
 
 - name: gen_certs_vault | Set facts for read Vault Creds
   set_fact:
     user_vault_creds: "{{ vault_creds_cat.stdout|from_json }}"
-  delegate_to: "{{ issue_cert_hosts|first }}"
+  delegate_to: "{{ groups.vault|first }}"
   run_once: true
 
 - name: gen_certs_vault | Log into Vault and obtain an token
@@ -49,7 +48,7 @@
     body:
       password: "{{ user_vault_creds.password }}"
   register: vault_login_result
-  delegate_to: "{{ issue_cert_hosts|first }}"
+  delegate_to: "{{ groups.vault|first }}"
   run_once: true
 
 - name: gen_certs_vault | Set fact for vault_client_token
@@ -78,7 +77,7 @@
       format: "{{ issue_cert_format | d('pem') }}"
       ip_sans: "{{ issue_cert_ip_sans | default([]) | join(',') }}"
   register: issue_cert_result
-  delegate_to: "{{ issue_cert_hosts|first }}"
+  delegate_to: "{{ groups.vault|first }}"
   run_once: true
 
 - name: "issue_cert | Copy {{ issue_cert_path }} cert to all hosts"

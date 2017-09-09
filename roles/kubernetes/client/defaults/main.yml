@@ -1,0 +1,3 @@
+---
+kubeconfig_localhost: false
+artifacts_dir: "./artifacts"

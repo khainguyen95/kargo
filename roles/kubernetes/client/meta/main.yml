@@ -1,0 +1,5 @@
+---
+dependencies:
+  - role: download
+    file: "{{ download, kubectl }}"
+    tags: [download, kubectl]

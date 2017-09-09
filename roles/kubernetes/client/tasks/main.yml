@@ -1,0 +1,62 @@
+---
+- name: Set external kube-apiserver endpoint
+  set_fact:
+    external_kube_apiserver_endpoint:
+      {%- if "127.0.0.1" or "localhost" in kube_apiserver_endpoint -%}
+      {{ first_kube_master }}:{{ kube_apiserver_port }}
+      {%- else -%}
+      {{ kube_apiserver_endpoint }}
+      {%- endif %}
+  tags: facts
+
+- name: Gather kube cacert
+  command: cat {{ kube_cert_dir }}/ca.pem | base64 -w0
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_vars: no
+  register: kube_cacert
+
+- name: Gather kube admin key
+  command: cat {{ kube_cert_dir }}/admin-{{ inventory_hostname }}-key.pem | base64 -w0
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_vars: no
+  register: kube_admin_key
+
+- name: Gather kube admin cert
+  command: cat {{ kube_cert_dir }}/admin-{{ inventory_hostname }}.pem | base64 -w0
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_vars: no
+  register: kube_admin_cert
+
+- name: Write admin kubeconfig
+  template:
+    src: admin.conf.j2
+    dest: "{{ kube_config_dir }}/admin.conf"
+  when: not kubeadm_enabled|bool|default(false)
+
+- name: Create kube config dir
+  file:
+    path: '{{ "~/.kube" | expanduser }}'
+    owner: " {{ become_user }}"
+    group: " {{ become_user }}"
+    mode: "0700"
+
+- name: Copy admin kubeconfig to root user home
+  copy:
+    remote_src: "{{ kube_config_dir }}/admin.conf"
+    dest: '{{ "~/.kube" | expanduser }}'
+    owner: " {{ become_user }}"
+    group: " {{ become_user }}"
+    mode: "0700"
+  run_once: yes
+  when: kubeconfig_localhost|default(false)
+
+- name: Copy admin kubeconfig and kubectl to ansible host
+  fetch:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    flat: yes
+  run_once: yes
+  when: kubeconfig_localhost|default(false)
+  with_items:
+    - {src: "{{ kube_config_dir }}/admin.conf", dest: "{{ artifacts_dir }}/admin.conf"}
+    - {src: "{{ bin_dir }}/kubectl", dest: "{{ artifacts_dir }}/kubectl"}

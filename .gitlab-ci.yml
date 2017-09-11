@@ -301,7 +301,7 @@ before_script:
   CLOUD_IMAGE: ubuntu-1604-xenial
   CLOUD_MACHINE_TYPE: "n1-standard-2"
   CLOUD_REGION: europe-west1-b
-  CLUSTER_MODE: default
+  CLUSTER_MODE: ha
   KUBEADM_ENABLED: "true"
   STARTUP_SCRIPT: ""
 

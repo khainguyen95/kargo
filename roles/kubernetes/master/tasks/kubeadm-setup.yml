@@ -29,7 +29,20 @@
     dest: "{{ kube_config_dir }}/kubeadm-config.yaml"
   register: kubeadm_config
 
+- task: Check if kubeadm has already run
+  stat:
+    path: "{{ kube_config_dir }}/admin.conf"
+  register: admin_conf
+
 - name: kubeadm | Initialize cluster
   command: timeout -k 240s 240s kubeadm init --config={{ kube_config_dir }}/kubeadm-config.yaml --skip-preflight-checks
   register: kubeadm_init
+  when: kubeadm_config.changed and not admin_conf.stat.exists
+
+- name: kubeadm | Update static pods
+  command: timeout -k 240s 240s kubeadm alpha phase controlplane all --config {{ kube_config_dir }}kubeadm-config.yaml
+  when: kubeadm_config.changed and admin_conf.stat.exists
+
+- name: kubeadm | Upload configuration
+  command: timeout -k 240s 240s kubeadm alpha phase config upload --config {{ kube_config_dir }}kubeadm-config.yaml
   when: kubeadm_config.changed
